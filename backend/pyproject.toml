@@ -40,7 +40,8 @@ exclude = ["app/database/migrations/versions"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "UP", "B", "SIM", "N"]
-ignore = []
+# B008: FastAPI's Depends()-in-default-argument pattern is idiomatic, not a bug.
+ignore = ["B008"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["app"]

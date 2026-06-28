@@ -14,3 +14,8 @@ class SessionExpiredError(ProviderError):
 class ConnectionLostError(ProviderError):
     """Raised when the provider unexpectedly loses connectivity but the session itself
     may still be valid; callers should retry with backoff before raising SessionExpiredError."""
+
+
+class QrLoginTimeoutError(ProviderError):
+    """Raised when no session is available and the QR code was not scanned within the
+    configured timeout. Callers must re-run the first-time authentication flow."""

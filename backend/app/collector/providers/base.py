@@ -67,6 +67,11 @@ class WhatsAppProvider(ABC):
         """Keep the session alive; perform reconnect/backoff if the connection was lost."""
 
     @abstractmethod
+    async def list_groups(self) -> list[str]:
+        """Return the names of all groups visible to the connected account. Read-only
+        discovery only — does not open a group or read any of its messages."""
+
+    @abstractmethod
     async def read_new_messages(self) -> list[CollectedMessage]:
         """Return messages received since the last checkpoint. Read-only; never marks
         messages as read/replied, edits, or deletes anything (Engineering Rules §8)."""

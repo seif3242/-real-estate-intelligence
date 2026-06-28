@@ -32,3 +32,8 @@ class CollectorService:
         added in a later milestone."""
         await self._provider.maintain_session()
         return await self._provider.read_new_messages()
+
+    async def list_groups(self) -> list[str]:
+        """Return the names of all groups visible to the connected account."""
+        await self._provider.maintain_session()
+        return await self._provider.list_groups()

@@ -1,8 +1,10 @@
 # Project Structure
 
-Status: Milestone 1 (project scaffolding, schema, Collector interface). See
-`docs/SYSTEM_DESIGN.md` for the architecture this structure implements and
-`docs/ENGINEERING_RULES.md` for the conventions enforced within it.
+Status: Milestone 2 (WhatsApp connection layer: QR auth, session
+persistence, group listing). See `docs/SYSTEM_DESIGN.md` for the
+architecture this structure implements, `docs/ENGINEERING_RULES.md` for
+the conventions enforced within it, and
+`docs/WHATSAPP_AUTHENTICATION.md` for how to authenticate the Collector.
 
 ## Top level
 
@@ -27,7 +29,7 @@ backend/
 ├── app/
 │   ├── main.py             FastAPI app factory + lifespan; mounts routers
 │   ├── config/             Settings (pydantic-settings) and logging setup
-│   ├── api/                HTTP routers (only /health in Milestone 1)
+│   ├── api/                HTTP routers (health, collector group listing)
 │   ├── database/
 │   │   ├── base.py          Declarative Base, naming convention, TimestampMixin
 │   │   ├── session.py       Async engine/session factory, get_session() dependency
@@ -42,11 +44,13 @@ backend/
 │   │                        Launch/Request/Offer)
 │   ├── collector/
 │   │   ├── service.py        CollectorService — orchestrates a WhatsAppProvider
+│   │   ├── cli.py             First-time QR-auth bootstrap (python -m app.collector.cli)
 │   │   └── providers/
 │   │       ├── base.py         WhatsAppProvider ABC + Collected* dataclasses
 │   │       │                   (the only contract the rest of the system
 │   │       │                   may depend on — System Design §2.2)
-│   │       ├── whatsapp_web.py  Playwright-backed implementation
+│   │       ├── whatsapp_web.py  Playwright-backed implementation: real QR auth,
+│   │       │                    session persistence, and group listing
 │   │       ├── factory.py       create_provider(settings) — provider selection
 │   │       └── exceptions.py    ProviderError and subclasses
 │   ├── queue/               Message processing queue — placeholder (Milestone 2+)
@@ -58,6 +62,7 @@ backend/
 │   └── notifications/       Notification delivery — placeholder
 └── tests/
     └── unit/                 Unit tests (provider factory, collector service,
+                               collector API, group-detection heuristic,
                                health endpoint)
 ```
 
@@ -110,11 +115,10 @@ alembic revision --autogenerate -m "<description>"
 alembic upgrade head
 ```
 
-## What is intentionally NOT implemented in Milestone 1
+## What is intentionally NOT implemented yet
 
-Per the Milestone 1 scope, the following exist only as empty placeholder
-packages or are entirely absent, and are out of scope until a later
-milestone:
+The following exist only as empty placeholder packages or are entirely
+absent, and are out of scope until a later milestone:
 
 - AI parsing of message text (`app/parser/`)
 - PDF processing (`app/pdf/`)
@@ -123,6 +127,11 @@ milestone:
 - Dashboard backend/frontend (`app/dashboard/`, `frontend/src/pages/`)
 - Chat assistant (`app/chat/`)
 - Notifications (`app/notifications/`)
-- Real WhatsApp message/attachment sync — `WhatsAppWebProvider.read_new_messages`
-  and `download_attachment` raise `NotImplementedError` by design; only the
-  browser session lifecycle (`connect`/`disconnect`/`is_connected`) is real.
+- Reading WhatsApp messages or downloading attachments —
+  `WhatsAppWebProvider.read_new_messages` and `download_attachment` raise
+  `NotImplementedError` by design. As of Milestone 2, the connection
+  layer is real: QR authentication, session persistence/reuse, session
+  validity checks, and group name listing (see
+  `docs/WHATSAPP_AUTHENTICATION.md`). Opening a group, reading its
+  messages, background sync, and database writes are still not
+  implemented.

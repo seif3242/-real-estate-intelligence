@@ -18,6 +18,7 @@ class FakeProvider(WhatsAppProvider):
         self.connected = False
         self.session_checks = 0
         self.messages: list[CollectedMessage] = []
+        self.groups: list[str] = []
 
     async def connect(self) -> None:
         self.connected = True
@@ -27,6 +28,9 @@ class FakeProvider(WhatsAppProvider):
 
     async def maintain_session(self) -> None:
         self.session_checks += 1
+
+    async def list_groups(self) -> list[str]:
+        return self.groups
 
     async def read_new_messages(self) -> list[CollectedMessage]:
         return self.messages
@@ -84,6 +88,18 @@ async def test_poll_once_returns_provider_messages() -> None:
     messages = await service.poll_once()
 
     assert messages == [_sample_message()]
+    assert provider.session_checks == 1
+
+
+@pytest.mark.asyncio
+async def test_list_groups_returns_provider_groups() -> None:
+    provider = FakeProvider()
+    provider.groups = ["Group A", "Group B"]
+    service = CollectorService(provider)
+
+    groups = await service.list_groups()
+
+    assert groups == ["Group A", "Group B"]
     assert provider.session_checks == 1
 
 
