@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Node
+node_modules/
+dist/
+coverage/
+
+# Env
+.env
+backend/.env
+
+# Logs / data
+logs/*.log
+backups/
+
+# WhatsApp session (local dev only; in Docker this is a named volume)
+whatsapp-session/
