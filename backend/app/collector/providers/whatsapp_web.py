@@ -10,11 +10,16 @@ docs/WHATSAPP_AUTHENTICATION.md and System Design §2.2).
 Selectors below target WhatsApp Web's current DOM and may need updating if
 WhatsApp changes its markup; they are kept as module-level constants for
 that reason.
+
+Group detection does not use the DOM at all (see `_GROUP_LOOKUP_SCRIPT`):
+it locates WhatsApp Web's internal webpack module store and reads each
+chat's real JID (`id.server == "g.us"` for groups), which is unaffected by
+whether a chat has a custom photo. See docs/WHATSAPP_AUTHENTICATION.md for
+the rationale and its limitations.
 """
 
 import logging
 import time
-from collections.abc import Iterable
 from pathlib import Path
 
 from playwright.async_api import BrowserContext, Page, Playwright, async_playwright
@@ -25,7 +30,11 @@ from app.collector.providers.base import (
     CollectedMessage,
     WhatsAppProvider,
 )
-from app.collector.providers.exceptions import ConnectionLostError, QrLoginTimeoutError
+from app.collector.providers.exceptions import (
+    ConnectionLostError,
+    GroupListingUnavailableError,
+    QrLoginTimeoutError,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -35,20 +44,61 @@ WHATSAPP_WEB_URL = "https://web.whatsapp.com"
 QR_CODE_SELECTOR = "div[data-testid='qrcode']"
 # Present only once a session is authenticated; used to confirm login state.
 CHAT_LIST_SELECTOR = "div[aria-label='Chat list']"
-CHAT_ROW_SELECTOR = "div[aria-label='Chat list'] div[role='listitem']"
-
-# Icon shown for chats without a custom photo. Groups with a custom photo are
-# not detected by this heuristic — see docs/WHATSAPP_AUTHENTICATION.md.
-_GROUP_ICON_NAMES = frozenset({"default-group", "default-group-refreshed"})
 
 SESSION_CHECK_TIMEOUT_MS = 5_000
 QR_LOGIN_TIMEOUT_SECONDS = 120.0
 LOGIN_POLL_INTERVAL_MS = 3_000
 
+# Locates WhatsApp Web's internal webpack module store and reads the chat
+# collection directly, rather than inferring chat type from rendered DOM/icons.
+# Pushing a synthetic chunk onto the page's own `webpackChunk*` array hands us
+# a working `require`, which we use to find the module exporting `Chat` (with
+# `getModelsArray()`). Each chat's `id.server` is `"g.us"` for groups and
+# `"c.us"`/`"s.whatsapp.net"` for individuals — this comes from WhatsApp's own
+# data model, so it is correct regardless of custom photos. Returns `None` if
+# the store can't be located (e.g. WhatsApp changed its bundling), which the
+# caller must treat as a hard failure, never as "zero groups".
+_GROUP_LOOKUP_SCRIPT = """
+() => {
+    const chunkKey = Object.keys(window).find((key) => key.startsWith("webpackChunk"));
+    if (!chunkKey) {
+        return null;
+    }
 
-def _is_group_row(icon_names: Iterable[str]) -> bool:
-    """Pure helper so the group-detection heuristic is unit-testable without Playwright."""
-    return any(name in _GROUP_ICON_NAMES for name in icon_names)
+    let webpackRequire;
+    window[chunkKey].push([
+        [Symbol("collector-group-lookup")],
+        {},
+        (require) => { webpackRequire = require; },
+    ]);
+    if (!webpackRequire) {
+        return null;
+    }
+
+    let chatCollection = null;
+    for (const moduleId of Object.keys(webpackRequire.m)) {
+        let moduleExports;
+        try {
+            moduleExports = webpackRequire(moduleId);
+        } catch (_error) {
+            continue;
+        }
+        const candidate = moduleExports && moduleExports.default;
+        if (candidate && candidate.Chat && typeof candidate.Chat.getModelsArray === "function") {
+            chatCollection = candidate.Chat;
+            break;
+        }
+    }
+    if (!chatCollection) {
+        return null;
+    }
+
+    return chatCollection
+        .getModelsArray()
+        .filter((chat) => chat.id && chat.id.server === "g.us")
+        .map((chat) => chat.formattedTitle || chat.name || (chat.id && chat.id.user) || "");
+}
+"""
 
 
 class WhatsAppWebProvider(WhatsAppProvider):
@@ -136,24 +186,16 @@ class WhatsAppWebProvider(WhatsAppProvider):
             raise ConnectionLostError("Cannot list groups: provider is not connected.")
         assert self._page is not None
 
-        names: list[str] = []
-        for row in await self._page.query_selector_all(CHAT_ROW_SELECTOR):
-            icon_elements = await row.query_selector_all("span[data-icon]")
-            icon_names = [
-                name
-                for icon in icon_elements
-                if (name := await icon.get_attribute("data-icon")) is not None
-            ]
-            if not _is_group_row(icon_names):
-                continue
-
-            title_element = await row.query_selector("span[title]")
-            if title_element is None:
-                continue
-            title = await title_element.get_attribute("title")
-            if title:
-                names.append(title)
-        return names
+        result = await self._page.evaluate(_GROUP_LOOKUP_SCRIPT)
+        if result is None:
+            raise GroupListingUnavailableError(
+                "Could not locate WhatsApp Web's internal chat store; group names "
+                "cannot be reliably listed. This usually means WhatsApp Web has "
+                "changed its internal module bundling — see "
+                "docs/WHATSAPP_AUTHENTICATION.md for the known limitation and the "
+                "recommended long-term fix (the official WhatsApp Business Platform API)."
+            )
+        return [name for name in result if name]
 
     async def read_new_messages(self) -> list[CollectedMessage]:
         raise NotImplementedError(

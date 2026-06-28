@@ -19,3 +19,9 @@ class ConnectionLostError(ProviderError):
 class QrLoginTimeoutError(ProviderError):
     """Raised when no session is available and the QR code was not scanned within the
     configured timeout. Callers must re-run the first-time authentication flow."""
+
+
+class GroupListingUnavailableError(ProviderError):
+    """Raised when WhatsApp Web's internal chat store cannot be located, so group
+    names cannot be reliably enumerated. Must fail loudly rather than silently
+    returning a partial/heuristic list — see docs/WHATSAPP_AUTHENTICATION.md."""

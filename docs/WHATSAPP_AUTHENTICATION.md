@@ -86,11 +86,45 @@ This endpoint does not open any group, read any messages, or write
 anything to the database — it only enumerates names already visible in
 the chat list sidebar.
 
-### Known limitation of group detection
+### How groups are reliably distinguished from one-on-one chats
 
-Groups are distinguished from one-on-one chats by checking each chat
-row's icon for WhatsApp's default "group" icon (`data-icon="default-group"`
-or `default-group-refreshed`). A group that has a **custom photo set**
-will not show this icon and will currently be skipped. This is a known
-limitation of DOM-based detection without using WhatsApp's internal
-JS store; revisit if it proves too lossy in practice.
+WhatsApp Web's rendered DOM does not expose a chat's type anywhere —
+there is no attribute on a chat row that says "this is a group". The
+only DOM-visible cue is a default "group" icon shown for chats without a
+custom photo, which means **any DOM-only heuristic has a structural blind
+spot**: groups with a custom photo are indistinguishable from individual
+chats by appearance alone. This is a genuine limitation of WhatsApp Web
+itself, not a tuning problem, so `WhatsAppWebProvider` does not use the
+DOM for group detection at all.
+
+Instead, `list_groups()` reads WhatsApp Web's own internal chat model.
+WhatsApp Web bundles its JS into webpack chunks exposed via a
+`window.webpackChunk*` array. By pushing a synthetic chunk onto that
+array, the provider obtains a working `require()` and locates the
+module exporting the live `Chat` collection (`Chat.getModelsArray()`).
+Each chat there carries its real JID, and `id.server` is `"g.us"` for
+groups and `"c.us"`/`"s.whatsapp.net"` for individuals — this is
+WhatsApp's own data, not a visual inference, so it is correct regardless
+of custom photos. This is the same technique mature unofficial WhatsApp
+Web automation libraries (e.g. `whatsapp-web.js`) use for the same
+reason.
+
+**Remaining risk**: this still relies on WhatsApp Web's unofficial,
+undocumented internal module structure, which WhatsApp can change at any
+time without notice (e.g. a frontend rewrite that changes how chunks are
+bundled). If the chat store can't be located, `list_groups()` raises
+`GroupListingUnavailableError` rather than silently returning an empty
+or partial list — per Engineering Rules, failures must surface loudly,
+never be swallowed into a misleadingly "successful" empty result.
+
+**Production-grade long-term solution**: the durable fix is to stop
+depending on WhatsApp Web's unofficial internals entirely and migrate to
+the official [WhatsApp Business Platform Cloud API](https://developers.facebook.com/docs/whatsapp),
+which exposes group/contact metadata through a stable, documented,
+Meta-supported API instead of reverse-engineered browser automation.
+Because `WhatsAppProvider` is already an abstraction (System Design
+§2.2), this would mean adding a new `WhatsAppCloudApiProvider`
+implementation behind the same interface — no changes required to
+`CollectorService`, the API endpoint, or any other caller. This is
+recommended as the next infrastructure investment once the business
+requires guarantees this unofficial approach cannot make.
