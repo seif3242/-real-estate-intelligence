@@ -25,3 +25,8 @@ class GroupListingUnavailableError(ProviderError):
     """Raised when WhatsApp Web's internal chat store cannot be located, so group
     names cannot be reliably enumerated. Must fail loudly rather than silently
     returning a partial/heuristic list — see docs/WHATSAPP_AUTHENTICATION.md."""
+
+
+class GroupNotFoundError(ProviderError):
+    """Raised when the requested group name does not match any group visible to
+    the connected account."""

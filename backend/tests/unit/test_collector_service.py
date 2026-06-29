@@ -3,9 +3,11 @@ from datetime import UTC, datetime
 import pytest
 
 from app.collector.providers.base import (
+    DEFAULT_MESSAGE_READ_LIMIT,
     CollectedAttachment,
     CollectedContentType,
     CollectedMessage,
+    ExtractedMessage,
     WhatsAppProvider,
 )
 from app.collector.service import CollectorService
@@ -19,6 +21,8 @@ class FakeProvider(WhatsAppProvider):
         self.session_checks = 0
         self.messages: list[CollectedMessage] = []
         self.groups: list[str] = []
+        self.recent_messages: list[ExtractedMessage] = []
+        self.last_read_request: tuple[str, int] | None = None
 
     async def connect(self) -> None:
         self.connected = True
@@ -34,6 +38,12 @@ class FakeProvider(WhatsAppProvider):
 
     async def read_new_messages(self) -> list[CollectedMessage]:
         return self.messages
+
+    async def read_recent_messages(
+        self, group_name: str, limit: int = DEFAULT_MESSAGE_READ_LIMIT
+    ) -> list[ExtractedMessage]:
+        self.last_read_request = (group_name, limit)
+        return self.recent_messages
 
     async def download_attachment(
         self, message: CollectedMessage, attachment: CollectedAttachment
@@ -100,6 +110,26 @@ async def test_list_groups_returns_provider_groups() -> None:
     groups = await service.list_groups()
 
     assert groups == ["Group A", "Group B"]
+    assert provider.session_checks == 1
+
+
+@pytest.mark.asyncio
+async def test_read_recent_messages_returns_provider_messages() -> None:
+    provider = FakeProvider()
+    extracted = ExtractedMessage(
+        sender_name="Jane Doe",
+        timestamp=_FIXED_RECEIVED_AT,
+        message_type=CollectedContentType.TEXT,
+        message_text="hello",
+        pdf_file_name=None,
+    )
+    provider.recent_messages = [extracted]
+    service = CollectorService(provider)
+
+    messages = await service.read_recent_messages("Test Group", limit=10)
+
+    assert messages == [extracted]
+    assert provider.last_read_request == ("Test Group", 10)
     assert provider.session_checks == 1
 
 

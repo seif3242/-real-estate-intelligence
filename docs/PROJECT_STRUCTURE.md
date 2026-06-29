@@ -1,10 +1,11 @@
 # Project Structure
 
-Status: Milestone 2 (WhatsApp connection layer: QR auth, session
-persistence, group listing). See `docs/SYSTEM_DESIGN.md` for the
-architecture this structure implements, `docs/ENGINEERING_RULES.md` for
-the conventions enforced within it, and
-`docs/WHATSAPP_AUTHENTICATION.md` for how to authenticate the Collector.
+Status: Milestone 3 (WhatsApp connection layer plus read-only,
+on-demand message reading for a single group). See
+`docs/SYSTEM_DESIGN.md` for the architecture this structure implements,
+`docs/ENGINEERING_RULES.md` for the conventions enforced within it,
+`docs/WHATSAPP_AUTHENTICATION.md` for how to authenticate the Collector,
+and `docs/WHATSAPP_MESSAGE_READING.md` for how message extraction works.
 
 ## Top level
 
@@ -127,11 +128,12 @@ absent, and are out of scope until a later milestone:
 - Dashboard backend/frontend (`app/dashboard/`, `frontend/src/pages/`)
 - Chat assistant (`app/chat/`)
 - Notifications (`app/notifications/`)
-- Reading WhatsApp messages or downloading attachments —
-  `WhatsAppWebProvider.read_new_messages` and `download_attachment` raise
-  `NotImplementedError` by design. As of Milestone 2, the connection
-  layer is real: QR authentication, session persistence/reuse, session
-  validity checks, and group name listing (see
-  `docs/WHATSAPP_AUTHENTICATION.md`). Opening a group, reading its
-  messages, background sync, and database writes are still not
-  implemented.
+- Downloading or analyzing attachments — `download_attachment` raises
+  `NotImplementedError` by design; PDFs are identified by file name only.
+- Background/automatic message sync, multi-group sync, and any database
+  writes of collected messages — `read_new_messages` raises
+  `NotImplementedError` by design. As of Milestone 3, message reading is
+  real but strictly on-demand and single-group: opening a named group
+  and returning its most recent messages (sender, timestamp, type, text,
+  PDF file name) as JSON, with no persistence, deduplication, or content
+  hashing (see `docs/WHATSAPP_MESSAGE_READING.md`).

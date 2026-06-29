@@ -8,7 +8,12 @@ service intentionally stops at "read messages from the provider."
 
 import logging
 
-from app.collector.providers.base import CollectedMessage, WhatsAppProvider
+from app.collector.providers.base import (
+    DEFAULT_MESSAGE_READ_LIMIT,
+    CollectedMessage,
+    ExtractedMessage,
+    WhatsAppProvider,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -37,3 +42,10 @@ class CollectorService:
         """Return the names of all groups visible to the connected account."""
         await self._provider.maintain_session()
         return await self._provider.list_groups()
+
+    async def read_recent_messages(
+        self, group_name: str, limit: int = DEFAULT_MESSAGE_READ_LIMIT
+    ) -> list[ExtractedMessage]:
+        """Open the named group and return its most recent messages."""
+        await self._provider.maintain_session()
+        return await self._provider.read_recent_messages(group_name, limit)

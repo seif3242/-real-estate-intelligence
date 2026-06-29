@@ -51,6 +51,26 @@ class CollectedMessage:
     attachments: tuple[CollectedAttachment, ...] = ()
 
 
+DEFAULT_MESSAGE_READ_LIMIT = 50
+
+
+@dataclass(frozen=True, slots=True)
+class ExtractedMessage:
+    """A single message read from a specific group, for on-demand inspection.
+
+    Deliberately narrower than `CollectedMessage`: only the fields a human
+    reviewer needs (Milestone 3 scope), no message id, group id, or content
+    hash — those belong to the future sync/dedup pipeline, not this one-shot
+    read.
+    """
+
+    sender_name: str | None
+    timestamp: datetime | None
+    message_type: CollectedContentType
+    message_text: str | None
+    pdf_file_name: str | None
+
+
 class WhatsAppProvider(ABC):
     """Abstract contract for any WhatsApp transport (Web automation, official API, etc.)."""
 
@@ -75,6 +95,15 @@ class WhatsAppProvider(ABC):
     async def read_new_messages(self) -> list[CollectedMessage]:
         """Return messages received since the last checkpoint. Read-only; never marks
         messages as read/replied, edits, or deletes anything (Engineering Rules §8)."""
+
+    @abstractmethod
+    async def read_recent_messages(
+        self, group_name: str, limit: int = DEFAULT_MESSAGE_READ_LIMIT
+    ) -> list[ExtractedMessage]:
+        """Open the named group and return its `limit` most recent messages, oldest
+        first. Read-only discovery only — no database writes, deduplication, content
+        hashing, or attachment download; PDF attachments are identified by file name
+        only, never downloaded or analyzed."""
 
     @abstractmethod
     async def download_attachment(
