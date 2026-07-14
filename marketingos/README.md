@@ -1,6 +1,6 @@
 # MarketingOS
 
-**Status: Blueprint stage. No implementation code exists yet. Do not begin building until the Open Decisions below are resolved and the blueprint is explicitly approved.**
+**Status: Blueprint stage. No implementation code exists yet.** `docs/PRD.md` v2.0 proceeds on explicit default assumptions for the open decisions below (see its top section) so the full PRD wasn't blocked on them — confirm or override those assumptions before implementation starts.
 
 MarketingOS is a professional operating system for marketing — not a website or blog — covering Marketing Strategy, Performance Marketing, Media Buying, E-commerce, Growth, Analytics, Creative Strategy, Copywriting, Consumer Psychology, CRM, SEO, Content Creation, Brand, and Marketing Finance/Leadership, structured Beginner → Intermediate → Advanced → Senior → Expert, with theory, frameworks, calculators, SOPs, checklists, decision trees, templates, case studies, and benchmarks.
 
@@ -12,20 +12,20 @@ This is a self-contained initiative living in this repository alongside the unre
 
 | Doc | Covers |
 |---|---|
-| [`docs/PRD.md`](./docs/PRD.md) | Vision, non-goals, personas & jobs-to-be-done, skill-level framework, domain taxonomy, product principles, success metrics |
-| [`docs/KNOWLEDGE_ARCHITECTURE.md`](./docs/KNOWLEDGE_ARCHITECTURE.md) | Content hierarchy (Domain→Topic→Module→Item), the 11 content types, metadata schema, learning paths |
-| [`docs/INFORMATION_ARCHITECTURE.md`](./docs/INFORMATION_ARCHITECTURE.md) | Navigation models, site map, key UX flows (onboarding, domain hub, calculators, troubleshooting), search, personalization, UX principles |
-| [`docs/SYSTEM_DESIGN.md`](./docs/SYSTEM_DESIGN.md) | Technical architecture: content layer, tool engine, search layer, personalization layer, modular repo structure |
-| [`docs/CONTENT_GOVERNANCE.md`](./docs/CONTENT_GOVERNANCE.md) | Quality bar, freshness SLA by content type, editorial workflow, contribution model, style guide |
-| [`docs/ROADMAP.md`](./docs/ROADMAP.md) | Phase 0 (this blueprint) → Phase 1 (3-domain MVP) → Phase 2 (horizontal expansion) → Phase 3 (intelligence layer) → Phase 4 (platform maturity) |
+| [`docs/PRD.md`](./docs/PRD.md) | **Start here.** The complete, self-contained PRD — vision, goals, personas, problems solved, features & priorities, user stories, functional/non-functional requirements, success metrics, risks, future expansion, IA, navigation, taxonomy, learning paths, content categories, internal linking, search strategy, dashboard layout, component list, folder/file structure, database structure, scalability plan |
+| [`docs/KNOWLEDGE_ARCHITECTURE.md`](./docs/KNOWLEDGE_ARCHITECTURE.md) | Deep dive: content hierarchy, per-type authoring templates, full metadata schema |
+| [`docs/INFORMATION_ARCHITECTURE.md`](./docs/INFORMATION_ARCHITECTURE.md) | Deep dive: full UX flow detail (onboarding, calculator flow, troubleshooting flow) |
+| [`docs/SYSTEM_DESIGN.md`](./docs/SYSTEM_DESIGN.md) | Deep dive: architectural rationale and trade-offs behind the PRD's technical sections |
+| [`docs/CONTENT_GOVERNANCE.md`](./docs/CONTENT_GOVERNANCE.md) | Deep dive: full quality bar, style guide, freshness SLA table |
+| [`docs/ROADMAP.md`](./docs/ROADMAP.md) | Deep dive: phase-by-phase sequencing behind the PRD's Feature Priorities |
 
-Read in that order — each doc builds on the ones before it.
+`PRD.md` is the canonical, complete reference — read it alone if you only read one file. The others provide extended detail on their respective areas and are cross-linked from the PRD.
 
 ---
 
-## Open Decisions (need your call before implementation starts)
+## Open Decisions (defaults assumed in PRD v2.0 — confirm or override)
 
-These are the choices that materially change the architecture and were deliberately **not** assumed:
+These are the choices that materially change the architecture. `docs/PRD.md` now proceeds with a stated default for each (see its "Assumptions" table) rather than blocking, but none are truly settled until you confirm:
 
 1. **Audience & access model.** Is this a personal/single-user knowledge base for you (like the sibling Real Estate AI Assistant project — local, single-user, no auth complexity), or a product meant for other people (team, clients, or public/commercial), which implies real accounts, auth, and possibly a monetization model? This single decision changes the Personalization Layer (`SYSTEM_DESIGN.md §6`) from "trivial" to "a real subsystem," and determines whether multi-tenancy/permissions need to be designed now rather than later.
 2. **Flagship domains for Phase 1.** `ROADMAP.md` recommends Performance Marketing & Media Buying, Analytics & Data, and Copywriting & Messaging as the 3 domains to build first — confirm, or name different priorities based on what you personally need soonest.
