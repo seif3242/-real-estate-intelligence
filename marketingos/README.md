@@ -14,7 +14,7 @@ This is a self-contained initiative living in this repository alongside the unre
 |---|---|
 | [`docs/PRD.md`](./docs/PRD.md) | **Start here.** The complete, self-contained PRD — vision, goals, personas, problems solved, features & priorities, user stories, functional/non-functional requirements, success metrics, risks, future expansion, IA, navigation, taxonomy, learning paths, content categories, internal linking, search strategy, dashboard layout, component list, folder/file structure, database structure, scalability plan |
 | [`docs/KNOWLEDGE_ARCHITECTURE.md`](./docs/KNOWLEDGE_ARCHITECTURE.md) | Deep dive: content hierarchy, per-type authoring templates, full metadata schema |
-| [`docs/INFORMATION_ARCHITECTURE.md`](./docs/INFORMATION_ARCHITECTURE.md) | Deep dive: full UX flow detail (onboarding, calculator flow, troubleshooting flow) |
+| [`docs/INFORMATION_ARCHITECTURE.md`](./docs/INFORMATION_ARCHITECTURE.md) | **Complete IA**: navigation models, organization systems, full site map & routing, labeling system, page templates, search architecture, faceted classification, internal linking model, learning paths, mobile/accessibility, IA governance, validation plan, sitemap diagram |
 | [`docs/SYSTEM_DESIGN.md`](./docs/SYSTEM_DESIGN.md) | Deep dive: architectural rationale and trade-offs behind the PRD's technical sections |
 | [`docs/CONTENT_GOVERNANCE.md`](./docs/CONTENT_GOVERNANCE.md) | Deep dive: full quality bar, style guide, freshness SLA table |
 | [`docs/ROADMAP.md`](./docs/ROADMAP.md) | Deep dive: phase-by-phase sequencing behind the PRD's Feature Priorities |

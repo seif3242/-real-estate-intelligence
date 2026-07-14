@@ -40,7 +40,7 @@ Every domain follows this same pattern of decomposition; full per-domain Topic/M
 
 # 2. Personas → Domains Matrix
 
-Maps who cares about which domains most, used to sequence content build order and to power role-based curated paths (see [`INFORMATION_ARCHITECTURE.md §3.4`](./INFORMATION_ARCHITECTURE.md)):
+Maps who cares about which domains most, used to sequence content build order and to power role-based curated paths (see [`INFORMATION_ARCHITECTURE.md §9`](./INFORMATION_ARCHITECTURE.md)):
 
 | Persona | Primary domains | Secondary domains |
 |---|---|---|
