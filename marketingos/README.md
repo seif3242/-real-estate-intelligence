@@ -18,6 +18,7 @@ This is a self-contained initiative living in this repository alongside the unre
 | [`docs/SYSTEM_DESIGN.md`](./docs/SYSTEM_DESIGN.md) | Deep dive: architectural rationale and trade-offs behind the PRD's technical sections |
 | [`docs/CONTENT_GOVERNANCE.md`](./docs/CONTENT_GOVERNANCE.md) | Deep dive: full quality bar, style guide, freshness SLA table |
 | [`docs/ROADMAP.md`](./docs/ROADMAP.md) | Deep dive: phase-by-phase sequencing behind the PRD's Feature Priorities |
+| [`docs/UI_UX_DESIGN.md`](./docs/UI_UX_DESIGN.md) | **Complete UI/UX**: design philosophy, color/type/spacing/motion tokens, iconography, layout & grid, component specs (all states), page-level visual specs, dark mode, accessibility/contrast, microcopy, design system governance |
 
 `PRD.md` is the canonical, complete reference — read it alone if you only read one file. The others provide extended detail on their respective areas and are cross-linked from the PRD.
 
